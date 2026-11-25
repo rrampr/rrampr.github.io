@@ -1,0 +1,453 @@
+/* ---------------------------------------------------------------------------
+   Design tokens.
+
+   Every colour is defined once on bare :root, then re-declared under the dark
+   media query. The canvas sketches read these same custom properties via
+   getComputedStyle, so drawings follow the theme without a second palette
+   living in JavaScript.
+   --------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light;
+
+  --bg: #fdfdfc;
+  --surface: #f5f5f2;
+  --surface-raised: #ffffff;
+  --border: #e2e2dc;
+  --border-strong: #cfcfc7;
+
+  --text: #1b1b19;
+  --text-muted: #67675f;
+  --text-faint: #8d8d84;
+
+  --link: #175d8c;
+  --link-hover: #0e3f61;
+  --accent: #b2502a;
+
+  /* Sketch palette — deliberately separate from the prose palette so figures
+     stay legible even if the text colours are retuned later. */
+  --sk-ink: #2a2a26;
+  --sk-grid: #dcdcd4;
+  --sk-guide: #a9a99f;
+  --sk-radius: #b2502a;
+  --sk-sin: #175d8c;
+  --sk-cos: #2f7d4f;
+  --sk-fill: rgba(178, 80, 42, 0.1);
+
+  --font-prose: ui-serif, Charter, 'Iowan Old Style', Georgia, Cambria,
+    'Times New Roman', serif;
+  --font-ui: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+
+  --measure: 68ch;
+  --gutter: 1.5rem;
+  --radius: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #16171b;
+    --surface: #1d1f24;
+    --surface-raised: #23262c;
+    --border: #2d3037;
+    --border-strong: #3d414a;
+
+    --text: #e7e7e2;
+    --text-muted: #a0a099;
+    --text-faint: #7d7d76;
+
+    --link: #7db8e0;
+    --link-hover: #a6d0ee;
+    --accent: #e08a5f;
+
+    --sk-ink: #d8d8d2;
+    --sk-grid: #2d3037;
+    --sk-guide: #6a6e78;
+    --sk-radius: #e08a5f;
+    --sk-sin: #7db8e0;
+    --sk-cos: #7fc49b;
+    --sk-fill: rgba(224, 138, 95, 0.14);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-prose);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 2.5rem 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Layout shell
+   --------------------------------------------------------------------------- */
+
+.shell {
+  width: 100%;
+  max-width: calc(var(--measure) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.site-main {
+  flex: 1 0 auto;
+  padding-block: 2.5rem 4rem;
+}
+
+.site-header {
+  border-bottom: 1px solid var(--border);
+  padding-block: 1.25rem;
+}
+
+.site-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.site-header__brand {
+  font-family: var(--font-ui);
+  font-weight: 650;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  gap: 1.25rem;
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+}
+
+.site-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current='page'] {
+  color: var(--text);
+}
+
+.site-nav a[aria-current='page'] {
+  font-weight: 600;
+}
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding-block: 1.5rem 2.5rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--text-faint);
+}
+
+.site-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  justify-content: space-between;
+}
+
+.site-footer a {
+  color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Headings & prose
+   --------------------------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-ui);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  margin: 2.25rem 0 0.75rem;
+  scroll-margin-top: 1.5rem;
+}
+
+h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-top: 0;
+}
+
+h2 {
+  font-size: 1.375rem;
+  font-weight: 650;
+}
+
+h3 {
+  font-size: 1.125rem;
+  font-weight: 650;
+}
+
+h4 {
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--text-muted);
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose p,
+.prose ul,
+.prose ol {
+  margin-block: 1.1em;
+}
+
+.prose li + li {
+  margin-top: 0.4em;
+}
+
+.prose blockquote {
+  margin: 1.5rem 0;
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  border-left: 3px solid var(--border-strong);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.prose blockquote p:first-child {
+  margin-top: 0;
+}
+
+.prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Footnotes, as generated by remark-gfm. */
+.prose .footnotes {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+}
+
+.prose .footnotes h2 {
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+}
+
+/* ---------------------------------------------------------------------------
+   Code
+
+   Astro's Shiki integration emits both themes as inline custom properties on
+   every token. Light is painted directly; the dark block re-points each token
+   at its --shiki-dark value. The !important flags are required to beat those
+   inline styles.
+   --------------------------------------------------------------------------- */
+
+code,
+kbd,
+samp {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+:not(pre) > code {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1em 0.32em;
+  white-space: nowrap;
+}
+
+pre {
+  margin-block: 1.5rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+pre > code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  white-space: pre;
+}
+
+@media (prefers-color-scheme: dark) {
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Math
+
+   Display equations get their own scroll container so a long derivation never
+   drags the whole page sideways on a phone. The negative margin lets the
+   scrollbar sit flush with the text column.
+   --------------------------------------------------------------------------- */
+
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.5rem;
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+}
+
+.katex {
+  font-size: 1.05em;
+}
+
+/* ---------------------------------------------------------------------------
+   Tables
+   --------------------------------------------------------------------------- */
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block: 1.5rem;
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+}
+
+.prose th,
+.prose td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.prose th {
+  font-weight: 650;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* ---------------------------------------------------------------------------
+   Shared pieces
+   --------------------------------------------------------------------------- */
+
+.meta {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--text-faint);
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tag {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+
+.lede {
+  font-size: 1.1875rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--surface-raised);
+  color: var(--text);
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  left: var(--gutter);
+  top: var(--gutter);
+}

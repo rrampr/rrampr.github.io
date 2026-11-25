@@ -1,0 +1,58 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getGardenNotes, formatDate, isoDate } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const notes = await getGardenNotes();
+
+  return notes.map((note) => ({
+    params: { slug: note.id },
+    props: { note },
+  }));
+}
+
+const { note } = Astro.props;
+const { Content } = await render(note);
+---
+
+<BaseLayout
+  title={note.data.title}
+  description={note.data.description ?? `A working note on ${note.data.title}.`}
+  modifiedDate={note.data.updated}
+  ogType="article"
+>
+  <article>
+    <header class="note-header">
+      <p class="meta">
+        <span class="status">{note.data.status}</span>
+        {' · tended '}
+        <time datetime={isoDate(note.data.updated)}>
+          {formatDate(note.data.updated)}
+        </time>
+      </p>
+      <h1>{note.data.title}</h1>
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .note-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .note-header .meta {
+    margin: 0 0 0.5rem;
+  }
+
+  .status {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.6875rem;
+    font-weight: 650;
+  }
+</style>

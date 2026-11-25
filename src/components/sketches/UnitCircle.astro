@@ -1,0 +1,288 @@
+---
+import Sketch from '../Sketch.astro';
+---
+
+<Sketch
+  name="unit-circle"
+  aspect={2}
+  label="A unit circle beside a sine curve. As the angle theta sweeps around the circle, the height of the point traces out the sine wave."
+>
+  <Fragment slot="controls">
+    <button type="button" data-role="toggle" aria-pressed="true">Pause</button>
+
+    <label>
+      θ
+      <input
+        type="range"
+        data-role="angle"
+        min="0"
+        max="6.283"
+        step="0.001"
+        value="0.9"
+        aria-label="Angle theta in radians"
+      />
+    </label>
+
+    <span>θ = <output data-role="angle-out">0.29π</output></span>
+    <span>sin θ = <output data-role="sin-out">0.783</output></span>
+    <span>cos θ = <output data-role="cos-out">0.622</output></span>
+  </Fragment>
+
+  Drag the circle or scrub θ. The vertical leg is <strong>sin θ</strong>, the
+  horizontal leg is <strong>cos θ</strong>, and the curve on the right is just
+  that vertical leg plotted against the angle.
+</Sketch>
+
+<script>
+  import { mountSketches, type SketchFrame } from '../../scripts/sketch';
+
+  const TAU = Math.PI * 2;
+
+  mountSketches('unit-circle', (root) => {
+    const foundCanvas = root.querySelector('canvas');
+    if (!foundCanvas) return null;
+    // Re-bound so the narrowing survives into the hoisted helpers below.
+    const canvas = foundCanvas;
+
+    const slider = root.querySelector<HTMLInputElement>('[data-role="angle"]');
+    const toggle = root.querySelector<HTMLButtonElement>('[data-role="toggle"]');
+    const angleOut = root.querySelector('[data-role="angle-out"]');
+    const sinOut = root.querySelector('[data-role="sin-out"]');
+    const cosOut = root.querySelector('[data-role="cos-out"]');
+
+    let angle = 0.9;
+    let playing = true;
+    let lastT = 0;
+    let dragging = false;
+
+    /**
+     * Single source of truth for the layout. The pointer handler and the draw
+     * function both read it, so the hit target can never drift away from the
+     * circle that's actually painted.
+     */
+    function geometry(w: number, h: number) {
+      const pad = 26;
+      const cy = h / 2;
+      const R = Math.max(10, Math.min(h / 2 - pad, w * 0.18));
+      const cx = pad + R;
+      const curveX0 = cx + R + 40;
+      return { pad, cx, cy, R, curveX0, curveW: w - pad - curveX0 };
+    }
+
+    function syncReadouts() {
+      if (slider && document.activeElement !== slider) {
+        slider.value = angle.toFixed(3);
+      }
+      if (angleOut) angleOut.textContent = `${(angle / Math.PI).toFixed(2)}π`;
+      if (sinOut) sinOut.textContent = Math.sin(angle).toFixed(3);
+      if (cosOut) cosOut.textContent = Math.cos(angle).toFixed(3);
+    }
+
+    function draw({ ctx, width, height, t, color }: SketchFrame) {
+      // Advance from the runtime's clock rather than counting frames, so the
+      // sweep runs at the same speed on a 60Hz and a 120Hz display.
+      if (playing) {
+        angle = (angle + Math.max(0, t - lastT) * 0.7) % TAU;
+      }
+      lastT = t;
+
+      const g = geometry(width, height);
+      const grid = color('--sk-grid', '#dcdcd4');
+      const guide = color('--sk-guide', '#a9a99f');
+      const radiusColor = color('--sk-radius', '#b2502a');
+      const sinColor = color('--sk-sin', '#175d8c');
+      const cosColor = color('--sk-cos', '#2f7d4f');
+
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.font =
+        '11px ui-sans-serif, -apple-system, BlinkMacSystemFont, sans-serif';
+
+      const px = g.cx + Math.cos(angle) * g.R;
+      const py = g.cy - Math.sin(angle) * g.R;
+
+      // --- Circle panel -----------------------------------------------------
+      ctx.strokeStyle = grid;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(g.cx - g.R - 12, g.cy);
+      ctx.lineTo(g.cx + g.R + 12, g.cy);
+      ctx.moveTo(g.cx, g.cy - g.R - 12);
+      ctx.lineTo(g.cx, g.cy + g.R + 12);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(g.cx, g.cy, g.R, 0, TAU);
+      ctx.stroke();
+
+      // Swept angle. Canvas y grows downward, so a mathematically
+      // counterclockwise sweep is drawn with a negative end angle.
+      ctx.fillStyle = color('--sk-fill', 'rgba(0,0,0,0.08)');
+      ctx.beginPath();
+      ctx.moveTo(g.cx, g.cy);
+      ctx.arc(g.cx, g.cy, g.R * 0.32, 0, -angle, true);
+      ctx.closePath();
+      ctx.fill();
+
+      // cos θ, as the horizontal leg.
+      ctx.strokeStyle = cosColor;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(g.cx, g.cy);
+      ctx.lineTo(px, g.cy);
+      ctx.stroke();
+
+      // sin θ, as the vertical leg.
+      ctx.strokeStyle = sinColor;
+      ctx.beginPath();
+      ctx.moveTo(px, g.cy);
+      ctx.lineTo(px, py);
+      ctx.stroke();
+
+      ctx.strokeStyle = radiusColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(g.cx, g.cy);
+      ctx.lineTo(px, py);
+      ctx.stroke();
+
+      ctx.fillStyle = radiusColor;
+      ctx.beginPath();
+      ctx.arc(px, py, 4.5, 0, TAU);
+      ctx.fill();
+
+      // --- Curve panel ------------------------------------------------------
+      if (g.curveW < 50) {
+        syncReadouts();
+        return;
+      }
+
+      const mapX = (a: number) => g.curveX0 + (a / TAU) * g.curveW;
+
+      ctx.strokeStyle = grid;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(g.curveX0, g.cy);
+      ctx.lineTo(g.curveX0 + g.curveW, g.cy);
+      ctx.stroke();
+
+      for (let k = 1; k <= 4; k++) {
+        const x = mapX((k * Math.PI) / 2);
+        ctx.beginPath();
+        ctx.moveTo(x, g.cy - g.R);
+        ctx.lineTo(x, g.cy + g.R);
+        ctx.stroke();
+      }
+
+      // Tick labels are detail that only earns its space on a wide canvas.
+      if (g.curveW > 190) {
+        ctx.fillStyle = guide;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const labels = ['0', 'π/2', 'π', '3π/2', '2π'];
+        for (let k = 0; k <= 4; k++) {
+          ctx.fillText(labels[k], mapX((k * Math.PI) / 2), g.cy + g.R + 6);
+        }
+      }
+
+      // The whole period, faintly, so the traced part reads as progress.
+      ctx.strokeStyle = guide;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i <= 160; i++) {
+        const a = (i / 160) * TAU;
+        const y = g.cy - Math.sin(a) * g.R;
+        i === 0 ? ctx.moveTo(mapX(a), y) : ctx.lineTo(mapX(a), y);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = sinColor;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      const steps = Math.max(2, Math.ceil((angle / TAU) * 160));
+      for (let i = 0; i <= steps; i++) {
+        const a = (angle * i) / steps;
+        const y = g.cy - Math.sin(a) * g.R;
+        i === 0 ? ctx.moveTo(mapX(a), y) : ctx.lineTo(mapX(a), y);
+      }
+      ctx.stroke();
+
+      ctx.save();
+      ctx.setLineDash([3, 4]);
+      ctx.strokeStyle = guide;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(mapX(angle), py);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = sinColor;
+      ctx.beginPath();
+      ctx.arc(mapX(angle), py, 4, 0, TAU);
+      ctx.fill();
+
+      syncReadouts();
+    }
+
+    return {
+      aspect: 2,
+      animate: true,
+      autoplay: true,
+      draw,
+      onReady(handle) {
+        function setPlaying(next: boolean) {
+          playing = next;
+          next ? handle.play() : handle.pause();
+          if (toggle) {
+            toggle.textContent = next ? 'Pause' : 'Play';
+            toggle.setAttribute('aria-pressed', String(next));
+          }
+          if (!next) handle.redraw();
+        }
+
+        // Someone who asked for reduced motion gets a still figure they can
+        // still explore by hand, not a disabled one.
+        if (handle.isReducedMotion()) setPlaying(false);
+
+        toggle?.addEventListener('click', () => setPlaying(!playing));
+
+        slider?.addEventListener('input', () => {
+          setPlaying(false);
+          angle = Number(slider.value);
+          handle.redraw();
+        });
+
+        function angleFromEvent(event: PointerEvent) {
+          const rect = canvas.getBoundingClientRect();
+          const g = geometry(rect.width, rect.height);
+          const a = Math.atan2(
+            g.cy - (event.clientY - rect.top),
+            event.clientX - rect.left - g.cx,
+          );
+          return a < 0 ? a + TAU : a;
+        }
+
+        canvas.addEventListener('pointerdown', (event) => {
+          dragging = true;
+          canvas.setPointerCapture(event.pointerId);
+          setPlaying(false);
+          angle = angleFromEvent(event);
+          handle.redraw();
+        });
+
+        canvas.addEventListener('pointermove', (event) => {
+          if (!dragging) return;
+          angle = angleFromEvent(event);
+          handle.redraw();
+        });
+
+        for (const type of ['pointerup', 'pointercancel']) {
+          canvas.addEventListener(type, () => {
+            dragging = false;
+          });
+        }
+      },
+    };
+  });
+</script>

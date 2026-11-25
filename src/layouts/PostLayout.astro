@@ -1,0 +1,78 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { formatDate, isoDate } from '../lib/content';
+
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  updatedDate?: Date;
+  tags?: string[];
+  draft?: boolean;
+}
+
+const { title, description, pubDate, updatedDate, tags = [], draft = false } =
+  Astro.props;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  publishedDate={pubDate}
+  modifiedDate={updatedDate}
+  ogType="article"
+>
+  <article>
+    <header class="post-header">
+      {draft && <p class="draft-flag">Draft — not included in production builds</p>}
+      <h1>{title}</h1>
+      <p class="meta">
+        <time datetime={isoDate(pubDate)}>{formatDate(pubDate)}</time>
+        {updatedDate && (
+          <>
+            {' · updated '}
+            <time datetime={isoDate(updatedDate)}>{formatDate(updatedDate)}</time>
+          </>
+        )}
+      </p>
+      {
+        tags.length > 0 && (
+          <ul class="tag-list">
+            {tags.map((tag) => (
+              <li class="tag">{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+
+    <div class="prose">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .post-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .post-header h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  .post-header .meta {
+    margin: 0 0 0.75rem;
+  }
+
+  .draft-flag {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--accent);
+    border: 1px dashed var(--accent);
+    border-radius: var(--radius);
+    padding: 0.4rem 0.7rem;
+    margin: 0 0 1.25rem;
+  }
+</style>

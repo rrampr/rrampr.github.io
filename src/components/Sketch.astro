@@ -1,0 +1,131 @@
+---
+/**
+ * Presentational shell for an interactive canvas figure.
+ *
+ * This component is markup and styling only — it ships no JavaScript of its
+ * own. A concrete widget wraps it, passes a `name`, and registers its draw
+ * function against that name with `mountSketches` from `src/scripts/sketch.ts`.
+ */
+interface Props {
+  /** Must match the `mountSketches(name, …)` call in the widget's script. */
+  name: string;
+  /** Describes the figure for screen readers and when canvas is unavailable. */
+  label: string;
+  /** width / height. Also used as a CSS fallback to avoid layout shift. */
+  aspect?: number;
+}
+
+const { name, label, aspect = 2 } = Astro.props;
+---
+
+<figure class="sketch" data-sketch={name} style={`--sk-aspect: ${aspect};`}>
+  <canvas role="img" aria-label={label}></canvas>
+
+  {
+    Astro.slots.has('controls') && (
+      <div class="sketch__controls">
+        <slot name="controls" />
+      </div>
+    )
+  }
+
+  <noscript>
+    <p class="sketch__noscript">
+      This figure is interactive and needs JavaScript. {label}
+    </p>
+  </noscript>
+
+  {
+    Astro.slots.has('default') && (
+      <figcaption>
+        <slot />
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .sketch {
+    margin: 2rem 0;
+    padding: 0.85rem 0.85rem 0.6rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    /* Mirrors the aspect the runtime sets, so the box is reserved before the
+       script runs and the page doesn't jump. */
+    aspect-ratio: var(--sk-aspect, 2);
+    touch-action: none;
+    cursor: grab;
+  }
+
+  canvas:active {
+    cursor: grabbing;
+  }
+
+  .sketch__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  figcaption {
+    margin-top: 0.75rem;
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: var(--text-faint);
+  }
+
+  .sketch__noscript {
+    margin: 0.75rem 0 0;
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  /* Control primitives, shared by every widget so they all look the same. */
+  .sketch__controls :global(label) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+  }
+
+  .sketch__controls :global(input[type='range']) {
+    accent-color: var(--link);
+    width: clamp(7rem, 24vw, 12rem);
+  }
+
+  .sketch__controls :global(button) {
+    font: inherit;
+    font-weight: 550;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    padding: 0.25rem 0.7rem;
+    cursor: pointer;
+  }
+
+  .sketch__controls :global(button:hover) {
+    border-color: var(--text-faint);
+  }
+
+  .sketch__controls :global(output) {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+</style>

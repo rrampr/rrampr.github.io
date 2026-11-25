@@ -1,0 +1,37 @@
+---
+import '../styles/global.css';
+// Bundled at build time; Astro rewrites the font URLs and copies the woff2
+// files into the output. No KaTeX JavaScript is shipped.
+import 'katex/dist/katex.min.css';
+
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  publishedDate?: Date;
+  modifiedDate?: Date;
+  ogType?: 'website' | 'article';
+}
+
+const props = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead {...props} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header />
+    <main class="site-main" id="main">
+      <div class="shell">
+        <slot />
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>

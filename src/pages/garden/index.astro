@@ -1,0 +1,112 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getGardenNotes, formatDate, isoDate } from '../../lib/content';
+
+const notes = await getGardenNotes();
+---
+
+<BaseLayout
+  title="Garden"
+  description="Working notes — rougher and more provisional than the posts, revised in place as my understanding changes."
+>
+  <h1>Garden</h1>
+  <p class="lede">
+    Working notes rather than finished essays: rougher, more provisional, and
+    revised in place as my understanding changes. Each one is labelled with how
+    settled it is.
+  </p>
+
+  {
+    notes.length > 0 ? (
+      <ul class="note-list">
+        {notes.map((note) => (
+          <li>
+            <a href={`/garden/${note.id}/`}>{note.data.title}</a>
+            <span class={`status status--${note.data.status}`}>
+              {note.data.status}
+            </span>
+            <time class="meta" datetime={isoDate(note.data.updated)}>
+              {formatDate(note.data.updated)}
+            </time>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="empty">
+        Nothing planted yet. Notes will appear here as I start keeping them —
+        drop a <code>.mdx</code> file in <code>src/content/garden/</code> to
+        begin.
+      </p>
+    )
+  }
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-bottom: 0.75rem;
+  }
+
+  .lede {
+    margin: 0 0 2.5rem;
+    max-width: 60ch;
+  }
+
+  .note-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .note-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.75rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .note-list a {
+    font-family: var(--font-ui);
+    font-weight: 550;
+    text-decoration: none;
+    color: var(--text);
+    margin-right: auto;
+  }
+
+  .note-list a:hover {
+    color: var(--link);
+    text-decoration: underline;
+  }
+
+  .status {
+    font-family: var(--font-ui);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    border: 1px solid currentColor;
+  }
+
+  .status--seedling {
+    color: var(--sk-cos);
+  }
+
+  .status--budding {
+    color: var(--link);
+  }
+
+  .status--evergreen {
+    color: var(--text-muted);
+  }
+
+  .empty {
+    padding: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+  }
+</style>

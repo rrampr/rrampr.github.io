@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostList from '../components/PostList.astro';
+import { getPublishedPosts } from '../lib/content';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+const allPosts = await getPublishedPosts();
+const posts = allPosts.slice(0, 5);
+const hasMore = allPosts.length > posts.length;
+---
+
+<BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
+  <section class="intro">
+    <h1>Rohit Ramprasad</h1>
+    <p class="lede">
+      I write about mathematics, programming, and whatever I'm currently trying
+      to understand properly. Explanations here lean on figures you can poke at
+      rather than ones you just look at.
+    </p>
+  </section>
+
+  <h2 class="section-heading">Recent posts</h2>
+
+  {
+    posts.length > 0 ? (
+      <PostList posts={posts} />
+    ) : (
+      <p class="meta">Nothing published yet.</p>
+    )
+  }
+
+  {hasMore && <p class="more"><a href="/posts/">All posts →</a></p>}
+</BaseLayout>
+
+<style>
+  .intro {
+    margin-bottom: 3rem;
+  }
+
+  .intro h1 {
+    margin-bottom: 0.75rem;
+  }
+
+  .intro .lede {
+    margin: 0;
+    max-width: 60ch;
+  }
+
+  .section-heading {
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-faint);
+    margin: 0 0 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .more {
+    margin-top: 2.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.9375rem;
+  }
+
+  .more a {
+    text-decoration: none;
+  }
+
+  .more a:hover {
+    text-decoration: underline;
+  }
+</style>

@@ -1,0 +1,23 @@
+---
+import { render } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import { getPublishedPosts } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+
+  // The glob loader derives `id` from the file path minus its extension, so
+  // src/content/posts/a-note.mdx becomes /posts/a-note/.
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<PostLayout {...post.data}>
+  <Content />
+</PostLayout>

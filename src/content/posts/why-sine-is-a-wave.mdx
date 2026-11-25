@@ -1,0 +1,130 @@
+---
+title: Why sine looks like a wave
+description: Sine is usually introduced as a ratio of triangle sides, which makes its wave shape look like a coincidence. Unrolling a circle shows it isn't.
+pubDate: 2026-11-24
+tags: ['math', 'trigonometry']
+---
+
+import UnitCircle from '../../components/sketches/UnitCircle.astro';
+
+Most of us meet sine as a ratio of two sides of a right triangle:
+
+$$
+\sin\theta = \frac{\text{opposite}}{\text{hypotenuse}}
+$$
+
+That definition is fine for solving triangles, and useless for explaining why
+the graph of $\sin\theta$ is a smooth, endlessly repeating wave. Nothing about
+"a ratio of two lengths" suggests oscillation. The wave shows up the moment you
+stop thinking about triangles and start thinking about a circle.
+
+## The setup
+
+Take a circle of radius 1 centred at the origin, and a point walking
+anticlockwise around it. Let $\theta$ be the angle the point has swept out from
+the positive $x$-axis.[^radians] The point's coordinates are exactly
+
+$$
+(x, y) = (\cos\theta,\ \sin\theta)
+$$
+
+So $\sin\theta$ isn't fundamentally a ratio — it's the **height** of a point
+travelling around a circle. The triangle definition is what you get by drawing
+the point's vertical drop to the $x$-axis and noticing the hypotenuse has
+length 1.
+
+Now the wave. Drag the point below, or let it run:
+
+<UnitCircle />
+
+The curve on the right isn't a new object. It's the same height, replotted with
+$\theta$ running along the horizontal axis instead of being wrapped around a
+circle. Sine is what a circle looks like when you unroll it.
+
+## Three things that stop being arbitrary
+
+Once you see sine as circular height, a handful of facts you probably memorised
+become unavoidable.
+
+**It repeats with period $2\pi$.** Walking $2\pi$ radians takes the point all
+the way around, back to where it started. Same position, same height, so
+$\sin(\theta + 2\pi) = \sin\theta$. The periodicity isn't a property of the
+wave; it's a property of the loop.
+
+**It's bounded by $\pm 1$.** The point never leaves a circle of radius 1, so
+its height can't exceed 1. There is no $\theta$ with $\sin\theta = 1.4$, and
+you don't need to inspect the graph to know it.
+
+**$\sin^2\theta + \cos^2\theta = 1$.** This identity is the single most
+over-memorised fact in trigonometry, and it is just Pythagoras applied to the
+two legs in the figure. The legs have lengths $|\cos\theta|$ and
+$|\sin\theta|$, the hypotenuse is the radius, and the radius is 1.
+
+Watch the two legs as you drag: as the horizontal one shortens, the vertical
+one lengthens to compensate, and it compensates in exactly the way that keeps
+the sum of squares pinned at 1.
+
+## Where the derivative comes from
+
+Here's the part I found genuinely surprising the first time it clicked.
+
+If the point moves around the circle at unit speed, its velocity is tangent to
+the circle — perpendicular to the radius. Rotating the radius vector
+$(\cos\theta, \sin\theta)$ by a quarter turn anticlockwise gives
+$(-\sin\theta, \cos\theta)$, and that's the velocity.
+
+The *vertical* component of that velocity is $\cos\theta$. But the vertical
+position is $\sin\theta$, so the rate of change of $\sin\theta$ is $\cos\theta$:
+
+$$
+\frac{d}{d\theta}\sin\theta = \cos\theta
+$$
+
+No limits, no squeeze theorem, no table of values. The derivative of sine is
+cosine because turning a vector 90° turns its $y$-component into the old
+$x$-component. In the figure, this is why the traced wave is steepest exactly
+when the horizontal leg is longest, and momentarily flat exactly when the point
+is at the top or bottom of the circle.
+
+## Doing it in code
+
+If you want the wave without calling `Math.sin`, you can get it from rotation
+alone. Repeatedly applying a small rotation matrix to a starting vector walks a
+point around the circle, and its $y$-coordinate *is* the sine wave:
+
+```js
+// Rotate (1, 0) by a small angle, over and over.
+// The y-coordinates that fall out trace a sine wave.
+function circleWalk(steps = 64) {
+  const d = (2 * Math.PI) / steps;
+  const [c, s] = [Math.cos(d), Math.sin(d)];
+
+  let x = 1;
+  let y = 0;
+  const heights = [];
+
+  for (let i = 0; i < steps; i++) {
+    heights.push(y);
+    [x, y] = [c * x - s * y, s * x + c * y]; // one small rotation
+  }
+
+  return heights;
+}
+```
+
+That `[x, y] = [c*x - s*y, s*x + c*y]` line is the whole of circular motion. It
+is also, not coincidentally, how a great many oscillating systems get simulated:
+springs, pendulums, LC circuits, and anything else whose state vector rotates
+through a phase space. They all produce sine waves for the same structural
+reason this circle does.
+
+Which is, I think, the real reason sine turns up everywhere. It isn't that
+nature is fond of triangles. It's that nature is full of things going round and
+round, and sine is the shadow they cast.
+
+[^radians]:
+    Radians are what make this work cleanly. One radian is the angle that
+    subtends an arc of length 1 on a unit circle, so the angle swept and the
+    distance walked along the rim are the *same number*. Use degrees and that
+    correspondence breaks, which is why the derivative identity above would
+    pick up a stray factor of $\pi/180$.

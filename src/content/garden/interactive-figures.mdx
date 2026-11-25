@@ -1,0 +1,34 @@
+---
+title: What makes an interactive figure worth building
+updated: 2026-11-24
+status: seedling
+tags: ['writing', 'dataviz']
+---
+
+A running list of what separates a figure that teaches from one that just
+moves. Provisional, and I expect to disagree with some of this later.
+
+**The reader should control the independent variable, not the clock.** An
+animation on a loop makes you wait for the frame you want. A slider lets you
+hold the interesting case still and stare at it. Autoplay is fine as an
+invitation — it shows the thing is alive — but it should yield the moment
+someone touches it.
+
+**One figure, one claim.** If I need two sentences to say what a figure shows,
+it's two figures. The unit-circle one in
+[Why sine looks like a wave](/posts/why-sine-is-a-wave/) is close to the limit:
+it carries the circle-to-wave correspondence, and I had to resist bolting the
+derivative onto it as well.
+
+**The degenerate cases have to be reachable.** A figure you can't drag to
+$\theta = 0$ is hiding the case where the reader's intuition most likely
+breaks. Clamping a slider to the pretty range is a way of avoiding the
+question.
+
+**Numbers alongside the picture.** A readout turns "roughly a third of the way
+up" into $0.342$, which is the difference between a vague impression and
+something you can check against your own arithmetic.
+
+Still unsure about: whether to show the generating code next to every figure.
+It's honest and it teaches a second thing for free, but it doubles the length
+of the post and most readers don't want it.

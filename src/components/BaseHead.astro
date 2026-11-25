@@ -1,0 +1,62 @@
+---
+import { SITE_TITLE, SITE_AUTHOR } from '../consts';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Set on article pages so crawlers and readers see a publication date. */
+  publishedDate?: Date;
+  modifiedDate?: Date;
+  ogType?: 'website' | 'article';
+}
+
+const { title, description, publishedDate, modifiedDate, ogType = 'website' } =
+  Astro.props;
+
+// Astro.site comes from `site` in astro.config.mjs; the fallback keeps `astro
+// dev` working before the domain is wired up.
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+const fullTitle = title === SITE_TITLE ? title : `${title} · ${SITE_TITLE}`;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<meta name="author" content={SITE_AUTHOR} />
+<link rel="canonical" href={canonical} />
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="sitemap" href="/sitemap-index.xml" />
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  title={SITE_TITLE}
+  href={new URL('rss.xml', Astro.site ?? Astro.url.origin)}
+/>
+
+<meta property="og:type" content={ogType} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:site_name" content={SITE_TITLE} />
+<meta name="twitter:card" content="summary" />
+
+{
+  publishedDate && (
+    <meta
+      property="article:published_time"
+      content={publishedDate.toISOString()}
+    />
+  )
+}
+{
+  modifiedDate && (
+    <meta
+      property="article:modified_time"
+      content={modifiedDate.toISOString()}
+    />
+  )
+}
+
+<meta name="generator" content={Astro.generator} />
