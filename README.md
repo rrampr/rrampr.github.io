@@ -121,16 +121,16 @@ Push to `main`. The workflow builds and publishes; the repo needs
 
 ### Custom domain
 
-Not yet wired — the site currently serves from `comocha.github.io`. Once
+Not yet wired — the site currently serves from `rrampr.github.io`. Once
 `rrampr.com` is registered:
 
 1. Create `public/CNAME` containing one line, `rrampr.com`, and commit it. The
    file is what makes the custom domain survive each deploy; the dashboard
    setting alone can be overwritten.
 2. In Cloudflare DNS, both as **DNS-only** (grey cloud) to start:
-   - `@` → CNAME → `comocha.github.io` (Cloudflare flattens apex CNAMEs, which
+   - `@` → CNAME → `rrampr.github.io` (Cloudflare flattens apex CNAMEs, which
      is tidier than four A records)
-   - `www` → CNAME → `comocha.github.io`
+   - `www` → CNAME → `rrampr.github.io`
 3. Set the custom domain in Settings → Pages, wait for the certificate, then
    tick **Enforce HTTPS**.
 4. Only after the certificate is issued, optionally enable the Cloudflare proxy
